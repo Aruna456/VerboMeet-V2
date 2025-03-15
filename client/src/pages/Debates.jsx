@@ -1,33 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom'; // Use useNavigate instead of useHistory
+import { ToastContainer, toast } from 'react-toastify'; // Import toast and ToastContainer
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 const Debates = () => {
-  const debates = [
-    {
-      title: 'Artificial Intelligence in Society',
-      desc: 'Explore the impact of AI on our daily lives and its ethical implications.',
-      eventdetails: 'Date: Dec 15, 2024 | Time: 5:00 PM | Venue: Virtual',
-      category: 'Technology',
-    },
-    {
-      title: 'Climate Change: Myth or Reality?',
-      desc: 'Dive into the debate on climate change and discuss its significance.',
-      eventdetails: 'Date: Dec 20, 2024 | Time: 4:00 PM | Venue: Hall A',
-      category: 'Environment',
-    },
-    {
-      title: 'The Future of Education',
-      desc: 'Discuss how technology is reshaping the education sector.',
-      eventdetails: 'Date: Dec 25, 2024 | Time: 3:00 PM | Venue: Seminar Room',
-      category: 'Education',
-    },
-    {
-      title: 'Space Exploration: Is it Worth the Cost?',
-      desc: 'A thought-provoking discussion on the benefits of space exploration.',
-      eventdetails: 'Date: Dec 30, 2024 | Time: 6:00 PM | Venue: Auditorium',
-      category: 'Science',
-    },
-  ];
+  const [debates, setDebates] = useState([]);
+  const [userId, setUserId] = useState(null); // State to store the userId
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const { debateId } = useParams(); // Get the debateId from the URL
+  const navigate = useNavigate(); // For navigating programmatically
+
+  // Fetch debates
+  const fetchDebates = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/debates');
+      if (response.ok) {
+        const data = await response.json();
+        setDebates(data);
+      } else {
+        toast.error('Failed to fetch debates');
+      }
+    } catch (error) {
+      toast.error('Network error while fetching debates');
+      console.error(error);
+    }
+  };
+
+  // Check if user details are in localStorage or fetch from the server
+  useEffect(() => {
+    const userDetails = localStorage.getItem('userDetails');
+    
+    if (userDetails) {
+      // If userDetails exist in localStorage, parse and set userId
+      const parsedUserDetails = JSON.parse(userDetails);
+      setUserId(parsedUserDetails.id);
+    } else {
+      // If userDetails are not found, fetch from server
+      const fetchCurrentUser = async () => {
+        try {
+          const response = await axios.get('/api/current_user', { 
+            withCredentials: true 
+          });
+          setUserId(response.data.id); // Set userId from the response
+        } catch (error) {
+          console.error('Error fetching user:', error.response ? error.response.data : error.message);
+        }
+      };
+      fetchCurrentUser();
+    }
+    
+    fetchDebates(); // Fetch debates when the component mounts
+  }, []);
+
+  const handleRegister = async (debateId) => {
+    // Check userId from localStorage before registration
+    if (!userId) {
+        toast.error('User  is not logged in');
+        return;
+    }
+
+    if (!debateId) {
+        toast.error('No debate selected');
+        return;
+    }
+
+    try {
+        // Send a POST request to register the user for the debate
+        const response = await axios.post('http://localhost:5000/debates/register', {
+            userId,
+            debateId,
+        });
+        // Handle success response
+        console.log('Registration successful:', response.data);
+        toast.success('You have successfully registered for the debate!');
+    } catch (error) {
+        // Handle error response
+        console.error('Error registering for debate:', error.response?.data || error.message);
+        
+        // Check for specific error message about already being registered
+        if (error.response && error.response.data && error.response.data.error) {
+            if (error.response.data.error === 'Already registered for this debate') {
+                toast.error('You are already registered for this debate.');
+            } else {
+                toast.error('Error registering for the debate: ' + error.response.data.error);
+            }
+        } else {
+            toast.error('Error registering for the debate. Please try again later.');
+        }
+    }
+};
 
   const categories = [
     'All',
@@ -39,8 +102,6 @@ const Debates = () => {
     'Health',
   ];
 
-  const [selectedCategory, setSelectedCategory] = useState('All');
-
   const filteredDebates =
     selectedCategory === 'All'
       ? debates
@@ -49,12 +110,9 @@ const Debates = () => {
   return (
     <>
       <Navbar />
-
       <section className="w-full h-[50vh] landingbg flex items-center justify-center text-center text-white">
         <div className="px-6">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Explore Exciting Debates
-          </h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Explore Exciting Debates</h1>
           <p className="text-lg md:text-xl opacity-90">
             Engage in thought-provoking topics and enhance your debating skills.
           </p>
@@ -101,7 +159,13 @@ const Debates = () => {
                   <p className="text-sm text-purple-800 rounded-lg font-semibold mb-4">
                     {data.category}
                   </p>
-                  <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-800 text-white rounded-lg font-semibold shadow-md hover:scale-105 transition-transform">
+                  <button
+                    onClick={() => {
+                      // Use data._id for debateId
+                      handleRegister(data._id); // Pass data._id to register function
+                    }}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-800 text-white rounded-lg font-semibold shadow-md hover:scale-105 transition-transform"
+                  >
                     Register Now
                   </button>
                 </div>
@@ -114,6 +178,9 @@ const Debates = () => {
           )}
         </div>
       </section>
+
+      {/* ToastContainer to display toasts */}
+      <ToastContainer />
     </>
   );
 };

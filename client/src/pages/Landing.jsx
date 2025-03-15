@@ -22,7 +22,7 @@ const Landing = () => {
 
         <button
         onClick={handleGoogleSignIn}
-        className="px-8 py-4 bg-red-500 text-white rounded-lg font-semibold shadow-lg transform transition-all duration-300 hover:scale-105"
+        className="px-8 py-4 bg-gradient-to-r  from-purple-700 to-blue-700 text-white rounded-lg font-semibold shadow-lg transform transition-all duration-300 hover:scale-105"
       >
         Sign in with Google
       </button>

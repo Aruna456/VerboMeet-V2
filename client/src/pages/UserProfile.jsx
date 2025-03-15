@@ -1,153 +1,84 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Navbar from '../components/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 const UserProfile = () => {
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
-  const [isRegisteredEventsVisible, setIsRegisteredEventsVisible] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
+  const navigate = useNavigate();
 
-  // Mock data for registered events
-  const registeredEvents = [
-    {
-      title: 'Artificial Intelligence in Society',
-      date: 'Dec 15, 2024',
-      time: '5:00 PM',
-      venue: 'Virtual',
-    },
-    {
-      title: 'Climate Change: Myth or Reality?',
-      date: 'Dec 20, 2024',
-      time: '4:00 PM',
-      venue: 'Hall A',
-    },
-    {
-      title: 'The Future of Education',
-      date: 'Dec 25, 2024',
-      time: '3:00 PM',
-      venue: 'Seminar Room',
-    },
-  ];
+  useEffect(() => {
+    const storedUserDetails = localStorage.getItem('user');
+    console.log(storedUserDetails); // Check what's stored in localStorage
 
-  const toggleChangePasswordForm = () => {
-    setIsChangePasswordVisible(!isChangePasswordVisible);
-  };
-
-  const toggleRegisteredEventsVisibility = () => {
-    setIsRegisteredEventsVisible(!isRegisteredEventsVisible);
-  };
-
-  const handleProfilePictureChange = () => {
-    // Handle profile picture change
-  };
-
-  const handlePasswordChange = (e) => {
-    e.preventDefault();
-    // Handle password change logic
-  };
+    if (storedUserDetails) {
+      setUserDetails(JSON.parse(storedUserDetails)); // Parse and set user details
+    } else {
+      console.log('No user details found, redirecting to login');
+      navigate('/signIn'); // Redirect to login if no user details found
+    }
+  }, [navigate]);
 
   return (
-    <div className="max-w-4xl mx-auto py-10">
-      <div className="bg-white p-8 rounded-xl shadow-lg">
-        <h2 className="text-3xl font-bold mb-6">User Profile</h2>
-
-        {/* Profile Picture */}
-        <div className="flex items-center mb-6">
-          <div className="w-24 h-24 rounded-full bg-gray-300 mr-4">
-            {/* Display profile picture here */}
-          </div>
-          <button
-            onClick={handleProfilePictureChange}
-            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-800 text-white rounded-lg"
-          >
-            Change Profile Picture
-          </button>
+    <div className="font-sans bg-gray-50">
+      <Navbar />
+      {/* Profile Header Section */}
+      <section className="w-full h-[30vh] bg-gradient-to-r from-blue-800 to-black text-white flex items-center justify-center text-center">
+        <div className="px-6">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">Your Profile</h1>
         </div>
+      </section>
 
-        {/* Change Password Button */}
-        <button
-          onClick={toggleChangePasswordForm}
-          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-800 text-white rounded-lg mb-6"
-        >
-          Change Password
-        </button>
+      {/* Profile Details Section */}
+      <section className="py-20 px-6 bg-white">
+        {userDetails ? (
+          <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-xl">
+            {/* Profile Information */}
+            <div className="flex items-center mb-12">
+              <img
+                src={userDetails.avatar}
+                alt="Avatar"
+                className="w-32 h-32 rounded-full border-4 border-blue-600"
+              />
+              <div className="ml-6">
+                <h2 className="text-3xl font-semibold text-gray-800">{userDetails.displayName}</h2>
+                <p className="text-lg text-gray-600">{userDetails.email}</p>
+                <p className="text-sm text-gray-500">{userDetails.googleId}</p>
+              </div>
+            </div>
 
-        {/* Change Password Form (Hidden/Visible on Button Click) */}
-        {isChangePasswordVisible && (
-          <section className="mt-4 bg-white p-6 rounded-xl shadow-lg max-w-md mx-auto">
-            <h3 className="text-xl font-semibold mb-4">Change Password</h3>
-            <form onSubmit={handlePasswordChange}>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2" htmlFor="old-password">
-                  Old Password
-                </label>
-                <input
-                  type="password"
-                  id="old-password"
-                  name="old-password"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2" htmlFor="new-password">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="new-password"
-                  name="new-password"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2" htmlFor="confirm-password">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  id="confirm-password"
-                  name="confirm-password"
-                  className="w-full p-2 border border-gray-300 rounded-lg"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-800 text-white rounded-lg w-full"
-              >
-                Change Password
-              </button>
-            </form>
-          </section>
+            {/* Registered Debates Section */}
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-6">Registered Debates</h3>
+              {userDetails.registeredDebates.length > 0 ? (
+                <div className="space-y-6">
+                  {userDetails.registeredDebates.map((debate) => (
+                    <div
+                      key={debate._id}
+                      className="p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      <h4 className="text-xl font-semibold text-indigo-600">{debate.title}</h4>
+                      <p className="text-gray-700 mt-2">{debate.desc}</p>
+                      <p className="text-gray-600 mt-2">
+                        <strong>Category:</strong> {debate.category}
+                      </p>
+                      <p className="text-gray-500 mt-2">
+                        <strong>Event Details:</strong> {debate.eventDetails}
+                      </p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        <strong>Registered On:</strong> {new Date(debate.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">You haven't registered for any debates yet.</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-lg text-gray-600">Loading profile...</p>
         )}
-
-        {/* View Registered Events Button */}
-        <button
-          onClick={toggleRegisteredEventsVisibility}
-          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-800 text-white rounded-lg ml-3 mb-6 mt-6"
-        >
-          {isRegisteredEventsVisible ? 'Hide Registered Events' : 'View Registered Events'}
-        </button>
-
-        {/* Registered Events Section */}
-        {isRegisteredEventsVisible && (
-          <section className="mt-4 bg-white p-6 rounded-xl shadow-lg max-w-md mx-auto">
-            <h3 className="text-xl font-semibold mb-4">Registered Events</h3>
-            {registeredEvents.length === 0 ? (
-              <p>No events registered yet.</p>
-            ) : (
-              <ul>
-                {registeredEvents.map((event, idx) => (
-                  <li key={idx} className="mb-4">
-                    <p className="font-semibold">{event.title}</p>
-                    <p>{event.date} | {event.time}</p>
-                    <p>{event.venue}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
-      </div>
+      </section>
     </div>
   );
 };

@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema({
   displayName: String,
   email: String,
   avatar: String,
+  registeredDebates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Debate' }] 
 });
 
 module.exports = mongoose.model('User', UserSchema);

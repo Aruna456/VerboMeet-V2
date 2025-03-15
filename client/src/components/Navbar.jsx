@@ -4,7 +4,6 @@ import axios from 'axios';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
-  // const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -13,17 +12,22 @@ const Navbar = () => {
           withCredentials: true 
         });
         console.log('Fetched user data:', response.data);
-        setUser(response.data); 
+        setUser(response.data);
+        // Store the user data in localStorage
+        localStorage.setItem('user', JSON.stringify(response.data)); 
       } catch (error) {
         console.error('Error fetching user:', error.response ? error.response.data : error.message);
-        // setError(error.response ? error.response.data : error.message);
       }
     };
 
-    fetchCurrentUser();
+    // Check if user data exists in localStorage first
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));  // Retrieve and set user from localStorage
+    } else {
+      fetchCurrentUser();  // Fetch the user if not found in localStorage
+    }
   }, []);
-
-  // const isAdmin = user?.role === "admin";
 
   return (
     <nav className="landingbg text-white shadow-lg">
